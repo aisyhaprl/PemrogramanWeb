@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Kalkulator SPL & Non Linear</title>
+
+<style>
+/* ================= TEMA KAMPUS & ECO ================= */
+:root {
+    --primary: #2f855a;      /* hijau kampus */
+    --secondary: #22543d;    /* hijau akademis */
+    --bg: #f0fdf4;           /* hijau pastel eco */
+    --card: #ffffff;
+    --text: #1c4532;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    margin: 0;
+    padding: 30px;
+    color: var(--text);
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    color: var(--secondary);
+    letter-spacing: 0.5px;
+}
+
+.header p {
+    color: #276749;
+}
+
+/* ================= CARD ================= */
+.card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 20px rgba(34, 84, 61, 0.15);
+}
+
+.card h2 {
+    color: var(--secondary);
+}
+
+textarea, input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #9ae6b4;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+/* ================= BUTTON ================= */
+button {
+    margin-top: 15px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #276749;
+}
+
+/* ================= RESULT ================= */
+.result {
+    background: #dcfce7;
+    border-left: 6px solid var(--primary);
+    padding: 15px;
+    white-space: pre-wrap;
+    border-radius: 8px;
+}
+
+/* ================= FOOTER ================= */
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 13px;
+    color: #276749;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+    <h1>Kalkulator Sistem Persamaan</h1>
+    <p>Metode Gauss-Jordan & Newton-Raphson</p>
+</div>
+
+<!-- ================= SPL LINEAR ================= -->
+<div class="card">
+<h2>🔢 Sistem Persamaan Linear (Gauss-Jordan)</h2>
+<p>Contoh input matriks augmented:</p>
+<pre>2 1 5
+1 3 6</pre>
+<textarea id="matrixInput" placeholder="Masukkan matriks di sini..."></textarea>
+<button onclick="gaussJordan()">Hitung Gauss-Jordan</button>
+</div>
+
+<!-- ================= NON LINEAR ================= -->
+<div class="card">
+<h2>📈 Sistem Persamaan Non Linear (Newton-Raphson)</h2>
+
+<label>f(x, y)</label>
+<input id="fx" value="x*x + y*y - 4">
+
+<label>g(x, y)</label>
+<input id="gx" value="x - y - 1">
+
+<label>Nilai Awal x₀</label>
+<input id="x0" value="1">
+
+<label>Nilai Awal y₀</label>
+<input id="y0" value="1">
+
+<button onclick="newtonRaphson()">Hitung Newton-Raphson</button>
+</div>
+
+<!-- ================= OUTPUT ================= -->
+<div class="card">
+<h2>📊 Hasil Perhitungan</h2>
+<div class="result" id="output">Hasil akan ditampilkan di sini...</div>
+</div>
+
+<div class="footer">
+© 2025 | Kalkulator Metode Numerik – 🌱
+</div>
+
+</div>
+
+<script>
+/* ================= PARSE MATRIX ================= */
+function parseMatrix() {
+    return document.getElementById("matrixInput").value
+        .trim()
+        .split("\n")
+        .map(r => r.trim().split(/\s+/).map(Number));
+}
+
+/* ================= GAUSS JORDAN ================= */
+function gaussJordan() {
+    let A = parseMatrix();
+    let n = A.length;
+    let log = "Proses Gauss-Jordan:\n\n";
+
+    for (let i = 0; i < n; i++) {
+        if (A[i][i] === 0) {
+            for (let k = i + 1; k < n; k++) {
+                if (A[k][i] !== 0) {
+                    [A[i], A[k]] = [A[k], A[i]];
+                    break;
+                }
+            }
+        }
+
+        let pivot = A[i][i];
+        for (let j = 0; j <= n; j++) A[i][j] /= pivot;
+
+        for (let k = 0; k < n; k++) {
+            if (k !== i) {
+                let factor = A[k][i];
+                for (let j = 0; j <= n; j++) {
+                    A[k][j] -= factor * A[i][j];
+                }
+            }
+        }
+
+        log += `Langkah ${i+1}:\n${JSON.stringify(A)}\n\n`;
+    }
+
+    log += "Hasil Akhir:\n";
+    for (let i = 0; i < n; i++) {
+        log += `x${i+1} = ${A[i][n].toFixed(4)}\n`;
+    }
+
+    output.innerText = log;
+}
+
+/* ================= NEWTON RAPHSON ================= */
+function newtonRaphson() {
+    let fx = document.getElementById("fx").value;
+    let gx = document.getElementById("gx").value;
+
+    let x = parseFloat(x0.value);
+    let y = parseFloat(y0.value);
+
+    let h = 1e-4;
+    let out = "Iterasi Newton-Raphson:\n\n";
+
+    const f = (x,y)=>eval(fx);
+    const g = (x,y)=>eval(gx);
+
+    for (let i = 1; i <= 10; i++) {
+        let fxv = f(x,y), gxv = g(x,y);
+        let dfdx = (f(x+h,y)-fxv)/h;
+        let dfdy = (f(x,y+h)-fxv)/h;
+        let dgdx = (g(x+h,y)-gxv)/h;
+        let dgdy = (g(x,y+h)-gxv)/h;
+
+        let det = dfdx*dgdy - dfdy*dgdx;
+        if (det === 0) break;
+
+        let dx = (-fxv*dgdy + gxv*dfdy)/det;
+        let dy = (-dfdx*gxv + dgdx*fxv)/det;
+
+        x += dx;
+        y += dy;
+
+        out += `Iterasi ${i}: x=${x.toFixed(5)}, y=${y.toFixed(5)}\n`;
+    }
+
+    output.innerText = out + `\nHasil Akhir:\nx=${x.toFixed(4)}\ny=${y.toFixed(4)}`;
+}
+</script>
+
+</body>
+</html>
